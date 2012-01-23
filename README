@@ -1,0 +1,28 @@
+This project was created to solve the following problem:
+In software I am working on, we sometimes have to deal with arbitrary projections in shapefiles. The system is written in Java with a Postgres background, so it uses GeoTools, Geoserver, and PostGIS within its stack.
+We have setup PostGIS to serve as the Authority Factory for geotools, so that when it looks for a projection it looks in the PostGIS table spatial_ref_sys. All the standard EPSG projections are there, but we 
+encounter projections that don't seem to be in this standard set. When that happens we want to add the new projection to the system by adding it to the spatial_ref_sys table. Because most of the projection info
+comes from shapefile .prj files, we will generally start with the well-known text for this new projection. However, PostGIS uses Proj4 to reproject data, so it needs the proj4 argument string in addition to the 
+well-known text. I couldn't figure out a way to produce the proj4 input string for an arbitrary projection using any existing packages, so I wrote this module which can parse well-known text like that in a .prj
+file and produce the proj4 string in order to fill in the appropriate PostGIS table.
+
+I have tested this on all the existing projections in the standard PostGIS install. It works on almost all of them, using fairly general rules that should also apply to those projections that are not in the 
+PostGIS data set. However, I should caveat this by saying that my understanding of the different varieties of coordinate projection is not deep, so it could be that there are flaws in my methodology that won't
+work for some (or even many) projections. 
+
+Using this package is straightforward:
+    CrsWkt2Proj4Converter conv = new CrsWkt2Proj4Converter();
+    Proj proj4obj = conv.convert(wkt)
+    String proj4string = proj4obj.toProj4String()
+
+I also created a proj4 parser which will parse the Proj4 string and convert it into a 
+Proj object. This was primarily for testing and this parser was only tested on well-formed inputs, so it should not be considered robust:
+    Proj4TextParser parser = new Proj4TextParser()
+    Proj proj4obj = parser.parse(proj4string)
+
+If you find a problem with my software or know a better way to get the proj4 string from the well-known text of an arbitrary projection, feel free to let me know:
+ktcorby@gmail.com
+Or fix my code and submit a pull request.
+
+Thanks.
+- Kevin
